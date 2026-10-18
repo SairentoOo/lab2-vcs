@@ -8,21 +8,20 @@ on:
 
 jobs:
   build-and-test:
-    runs-on: ubuntu-latest
+    # Меняем ubuntu-latest на windows-latest
+    runs-on: windows-latest
 
     steps:
     - uses: actions/checkout@v4
     
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '8.0.x'
-        
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v2
+      
     - name: Restore dependencies
-      run: dotnet restore Laba1_PO.slnx
+      run: msbuild Laba1_PO.slnx -t:Restore
       
     - name: Build
-      run: dotnet build Laba1_PO.slnx --no-restore
+      run: msbuild Laba1_PO.slnx -p:Configuration=Release
       
     - name: Test
       run: dotnet test Laba1_PO.slnx --no-build --verbosity normal
