@@ -12,3 +12,5 @@
 ## Установка
 
 pip install -r requirements.txt
+
+Тест автоматического запуска
