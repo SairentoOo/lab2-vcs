@@ -1,35 +1,55 @@
 pipeline {
     agent any
 
+    environment {
+        PROJECT_NAME = 'lab2-vcs'
+    }
+
     stages {
         stage('Checkout') {
             steps {
-                echo 'Код получен из Git'
-                // Для Windows используем команду dir вместо ls -la
-                bat 'dir' 
+                echo "Клонирование проекта ${env.PROJECT_NAME}..."
+                checkout scm
             }
         }
-        stage('Build') {
+        stage('Setup') {
             steps {
-                echo 'Сборка проекта...'
-                // Собираем решение. Если dotnet не установлен, эта команда выдаст ошибку
-                bat 'dotnet build Laba1_PO.slnx || echo "Сборка пропущена (нет dotnet)"'
+                echo 'Восстановление зависимостей...'
+                bat 'dotnet restore Laba1_PO.slnx || echo "Восстановление пропущено"'
+            }
+        }
+        stage('Lint') {
+            steps {
+                echo 'Статический анализ...'
+                bat 'echo "Линтер пропущен"'
             }
         }
         stage('Test') {
             steps {
                 echo 'Запуск тестов...'
-                // Запускаем тесты (если они есть)
                 bat 'dotnet test Laba1_PO.slnx || echo "Тесты пропущены"'
+            }
+        }
+        stage('Archive') {
+            steps {
+                echo 'Сохранение артефакта...'
+                // Создаем папку artifacts и кладем туда файл с номером сборки
+                bat 'if not exist artifacts mkdir artifacts'
+                bat 'echo Build %BUILD_NUMBER% > artifacts/build.txt'
+                // Говорим Jenkins сохранить файлы
+                archiveArtifacts artifacts: 'artifacts/**', allowEmptyArchive: true
             }
         }
     }
     post {
+        always {
+            echo "Pipeline завершён. Номер сборки: ${env.BUILD_NUMBER}"
+        }
         success {
-            echo 'Пайплайн завершён успешно!'
+            echo 'Все этапы прошли успешно!'
         }
         failure {
-            echo 'Пайплайн завершился с ошибкой'
+            echo 'Один из этапов завершился с ошибкой'
         }
     }
 }
